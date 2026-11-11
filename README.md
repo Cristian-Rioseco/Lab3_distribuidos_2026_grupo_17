@@ -1,33 +1,57 @@
-# Lab3_distribuidos_2026_grupo_17
+Lab 3: Sistemas Distribuidos - DistriEats
 
-Cristian Rioseco 202204507-8
-Jaime Donoso 202273645-3
-Dan gonzales  202273543-0
+Repositorio GitHub: https://github.com/Cristian-Rioseco/Lab3_distribuidos_2026_grupo_17
 
 
-orden a ejecutar:
+Cristian Rioseco (202204507-8) - rol de creacion: nameserver,dockercompose mv1 y mv3, makefile, datanode.
+Jaime Donoso (202273645-3) - rol de creacion: Extractor, cliente y broker.
+Dan Gonzales (202273543-0) - rol de creacion: Procesadores, docker compose mv2 y mv4.
 
-(VM3 → VM4 → VM2 → VM1)
+Distribución en Máquinas Virtuales:
+VM1 (dist065): Base de Datos Legada (PostgreSQL), Cliente Emisor, Extractor Histórico.
+VM2 (dist066): RabbitMQ, Broker de Logística, Procesadora 1 (Trabajadora/Líder).
+VM3 (dist067): Servidor de Nombres, Procesadora 2 (Trabajadora/Líder).
+VM4 (dist068): Datanode Central, Procesadora 3 (Trabajadora/Líder).
 
-Acceder a las vm (ssh) y luego ejecutar de acuerdo al orden en cada una 
-de las vm.
+Instrucciones de Ejecución
+Para el correcto funcionamiento del sistema, es estrictamente necesario levantar las máquinas en el orden indicado a continuación. Cada comando debe ejecutarse en la terminal correspondiente a su Máquina Virtual tras acceder por SSH.
 
-1. entras a la vm3 y luego:
+Requisito para la mv2
+
+Dado que las máquinas de la U ya tienen el rabbitmq, antes de levantar la VM2 debemos detener dicho servicio para evitar colisiones con el contenedor de Docker (ya esta desde antes en nuestras maquinas para probar el codigo):
+sudo systemctl stop rabbitmq-server    (ya no es necesario)
+
+
+Orden de Encendido (paso a paso, puede llegar y copiar ):
+
+1. Levantar VM3
+ssh dist@dist067.inf.santiago.usm.cl
+cd Grupo17-Lab3
 make docker-VM3
-2. entras a la vm4 y luego:
+
+2. Levantar VM4
+ssh dist@dist068.inf.santiago.usm.cl
+cd Grupo17-Lab3
 make docker-VM4
-3. entras a la vm2 y luego:
+
+3. Levantar VM2
+ssh dist@dist066.inf.santiago.usm.cl
+cd Grupo17-Lab3
 make docker-VM2
-4. entras a la vm1 y luego:
+
+4. Levantar VM1
+ssh dist@dist065.inf.santiago.usm.cl
+cd Grupo17-Lab3
 make docker-VM1
 
+Importante:
 
-(destacar que cada codigo se debe ejectutar cuando estes en 
-la maquina virtual correspondiente, ademas cabe destacar que
-si habres dos terminales, una con la tabla de nombre e intentas
-ver en tiempo real el registro (si funciona), es
-probable que en un punto deje "mostar que se esta registrando", esto se 
-debe a que la universidad cada cierto tiempo te hecha de la conexion
-, debes volver a meterte y ver denuevo la tabla que está actualizada
- ya que cada cierto tiempo te saca el ssh.)
+Si se abren múltiples terminales para observar los logs en tiempo real (por ejemplo, el registro en el NameServer), es probable que la terminal se congele o deje de mostrar nuevos eventos tras un rato de no usarla. Esto es normal de los servidores de la U, cortan la conexión SSH por timeout. Si eso pasa, simplemente vuelva a conectarse a la máquina y ejecute "sudo docker compose -f docker-compose-mvX.yml logs -f" para volver a ver.
 
+Apagado y Limpieza
+
+para apagar y limpiar haga:
+
+make down-VMX
+
+(Reemplazando la X por el número de la máquina correspondiente).
