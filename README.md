@@ -18,7 +18,7 @@ make docker-VM3
 make docker-VM4
 3. entras a la vm2 y luego:
 make docker-VM2
-4.entras a la vm1 y luego:
+4. entras a la vm1 y luego:
 make docker-VM1
 
 
