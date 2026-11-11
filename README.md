@@ -24,22 +24,22 @@ sudo systemctl stop rabbitmq-server    (ya no es necesario)
 
 Orden de Encendido (paso a paso, puede llegar y copiar ):
 
-1. Levantar VM3
+1. Levantar VM3:
 ssh dist@dist067.inf.santiago.usm.cl
 cd Grupo17-Lab3
 make docker-VM3
 
-2. Levantar VM4
+2. Levantar VM4:
 ssh dist@dist068.inf.santiago.usm.cl
 cd Grupo17-Lab3
 make docker-VM4
 
-3. Levantar VM2
+3. Levantar VM2:
 ssh dist@dist066.inf.santiago.usm.cl
 cd Grupo17-Lab3
 make docker-VM2
 
-4. Levantar VM1
+4. Levantar VM1:
 ssh dist@dist065.inf.santiago.usm.cl
 cd Grupo17-Lab3
 make docker-VM1
