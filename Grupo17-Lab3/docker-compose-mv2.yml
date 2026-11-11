@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: unless-stopped
+
+  broker:
+    build: 
+      context: .
+      dockerfile: broker/Dockerfile
+    container_name: broker_logistica
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      # IP de la VM3 (NameServer)
+      - NAMESERVER_ADDR=10.35.168.77:50050 
+    depends_on:
+      - rabbitmq
+    restart: unless-stopped
+
+  procesadora1:
+    build: 
+      context: .
+      dockerfile: procesadores/Dockerfile
+    container_name: procesadora1
+    environment:
+      - PROCESADORA_ID=1
+      - PROCESADORA_PORT=50061
+      # IP de la máquina (VM2)
+      - PROCESADORA_HOST=10.35.168.76 
+      # IP de la VM3 (NameServer)
+      - NAMESERVER_ADDR=10.35.168.77:50050 
+    ports:
+      - "50061:50061"
+    restart: unless-stopped

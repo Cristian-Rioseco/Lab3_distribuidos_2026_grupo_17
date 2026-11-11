@@ -1,0 +1,26 @@
+# =====================================================================
+# DistriEats - Base de Datos Legada (MV1)
+# Copien el servicio "bd-legada" y el volumen al docker-compose.yml de la MV1.
+# Sus contenedores del Cliente Emisor y del Extractor Histórico, en este mismo
+# compose, se conectan con host "bd-legada" y puerto 5432.
+# =====================================================================
+services:
+  bd-legada:
+    image: ghcr.io/felipemarchantvargas/distrieats-bd:1.0
+    container_name: bd-legada
+    restart: unless-stopped
+    ports:
+      - "5432:5432"            # opcional: solo si necesitan acceder desde fuera de la MV1
+    volumes:
+      - bd-legada-datos:/var/lib/postgresql/data
+
+  # Ejemplo de cómo sus entidades pueden esperar a que la base esté lista:
+  # cliente-emisor:
+  #   build: ./cliente-emisor
+  #   env_file: .env
+  #   depends_on:
+  #     bd-legada:
+  #       condition: service_healthy
+
+volumes:
+  bd-legada-datos:

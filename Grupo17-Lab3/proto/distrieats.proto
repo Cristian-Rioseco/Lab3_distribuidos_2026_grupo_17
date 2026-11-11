@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+package distrieats;
+option go_package = "./proto";
+
+// =====================================================================
+// 1. SERVIDOR DE NOMBRES
+// =====================================================================
+service NameServer {
+  rpc Registrar (RegistroReq) returns (RegistroRes);
+  rpc Resolver (ResolverReq) returns (ResolverRes);
+  rpc Listar (ListarReq) returns (ListarRes);
+  rpc RenovarLease (HeartbeatReq) returns (HeartbeatRes);
+}
+
+message RegistroReq {
+  string nombre = 1; 
+  string direccion = 2; 
+}
+message RegistroRes {
+  bool exito = 1;
+}
+
+message ResolverReq {
+  string nombre = 1;
+}
+message ResolverRes {
+  string direccion = 1;
+  bool encontrado = 2;
+}
+
+message ListarReq {
+  string prefijo = 1; 
+}
+message ListarRes {
+  map<string, string> nombres_direcciones = 1;
+}
+
+message HeartbeatReq {
+  string nombre = 1;
+}
+message HeartbeatRes {
+  bool renovado = 1;
+}
+
+// =====================================================================
+// 2. COORDINACIÓN (ALGORITMO BULLY)
+// =====================================================================
+service CoordinacionBully {
+  rpc Eleccion (MensajeBully) returns (RespuestaBully);
+  rpc Coordinador (MensajeBully) returns (RespuestaBully);
+  rpc PingLider (PingReq) returns (PingRes);
+}
+
+message MensajeBully {
+  int32 id_origen = 1;
+}
+message RespuestaBully {
+  bool ok = 1;
+}
+message PingReq {
+  int32 id_origen = 1;
+}
+message PingRes {
+  bool activo = 1;
+}
+
+// =====================================================================
+// 3. FLUJO DE DATOS (BROKER -> LÍDER -> TRABAJADORAS -> DATANODE)
+// =====================================================================
+
+service ProcesamientoLider {
+  rpc EnviarLoteCrudo (LoteReq) returns (LoteRes);
+}
+
+service ProcesamientoTrabajadora {
+  rpc ProcesarSubLote (SubLoteReq) returns (SubLoteRes);
+}
+
+service Almacenamiento {
+  rpc GuardarLoteProcesado (GuardarReq) returns (GuardarRes);
+}
+
+// Estructuras de datos para los pedidos
+message Pedido {
+  string id_pedido = 1;
+  string cadena = 2;
+  string estado = 3;
+  string timestamp_emision = 4;
+}
+
+message PedidoProcesado {
+  string id_pedido = 1;
+  string cadena = 2;
+  string estado = 3;
+  string timestamp_emision = 4;
+  string timestamp_procesamiento = 5;
+  string origen = 6;
+  string procesadora = 7;
+}
+
+message LoteReq {
+  string lote_id = 1;
+  string origen = 2; 
+  repeated Pedido pedidos = 3;
+}
+message LoteRes {
+  bool exito = 1;
+}
+
+message SubLoteReq {
+  string sublote_id = 1;
+  string origen = 2;
+  repeated Pedido pedidos = 3;
+}
+message SubLoteRes {
+  bool exito = 1;
+}
+
+message GuardarReq {
+  string sublote_id = 1;
+  repeated PedidoProcesado pedidos_procesados = 2;
+}
+message GuardarRes {
+  bool exito = 1;
+}

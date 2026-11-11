@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  nameserver:
+    build: 
+      context: .
+      dockerfile: nameserver/Dockerfile
+    container_name: nameserver
+    ports:
+      - "50050:50050"
+    restart: unless-stopped
+
+  procesadora2:
+    build: 
+      context: .
+      dockerfile: procesadores/Dockerfile
+    container_name: procesadora2
+    environment:
+      - PROCESADORA_ID=2
+      - PROCESADORA_PORT=50062
+      # IP de la máquina (VM3) (dan si esto no funciona cambiala)
+      - PROCESADORA_HOST=10.35.168.77
+      # IP del NameServer (que también es en esta misma VM3)
+      - NAMESERVER_ADDR=10.35.168.77:50050 
+    ports:
+      - "50062:50062"
+    depends_on:
+      - nameserver
+    restart: unless-stopped

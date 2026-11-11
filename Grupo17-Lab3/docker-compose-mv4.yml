@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  datanode:
+    build: 
+      context: .
+      dockerfile: datanode/Dockerfile
+    container_name: datanode_central
+    environment:
+      - DATANODE_PORT=50070
+      # IP de la máquina (VM4)
+      - DATANODE_HOST=10.35.168.78 
+      # IP de la VM3 (NameServer)
+      - NAMESERVER_ADDR=10.35.168.77:50050 
+    ports:
+      - "50070:50070"
+    volumes:
+      - ./datos:/root/datos 
+    restart: unless-stopped
+
+  procesadora3:
+    build: 
+      context: .
+      dockerfile: procesadores/Dockerfile
+    container_name: procesadora3
+    environment:
+      - PROCESADORA_ID=3
+      - PROCESADORA_PORT=50063
+      # IP de la máquina (VM4)
+      - PROCESADORA_HOST=10.35.168.78 
+      # IP de la VM3 (NameServer)
+      - NAMESERVER_ADDR=10.35.168.77:50050 
+    ports:
+      - "50063:50063"
+    restart: unless-stopped

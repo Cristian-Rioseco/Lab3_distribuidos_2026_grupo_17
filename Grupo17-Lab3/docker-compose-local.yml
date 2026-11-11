@@ -1,0 +1,139 @@
+version: '3.8'
+
+services:
+
+  #INFRAESTRUCTURA BASE  (este docker es solo por si quieres hacerlo en tu computador, cuidado por que se puede lllenar)
+
+  bd-legada:
+    image: ghcr.io/felipemarchantvargas/distrieats-bd:1.0
+    container_name: local_bd-legada
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: local_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: unless-stopped
+
+  #DIRECTORIO Y ALMACENAMIENTO
+
+  nameserver:
+    build: 
+      context: .
+      dockerfile: nameserver/Dockerfile
+    container_name: local_nameserver
+    ports:
+      - "50050:50050"
+    restart: unless-stopped
+
+  datanode:
+    build: 
+      context: .
+      dockerfile: datanode/Dockerfile
+    container_name: local_datanode
+    environment:
+      - DATANODE_PORT=50070
+      - DATANODE_HOST=datanode
+      - NAMESERVER_ADDR=nameserver:50050
+    ports:
+      - "50070:50070"
+    volumes:
+      - ./datos:/root/datos
+    depends_on:
+      - nameserver
+    restart: unless-stopped
+
+
+  #PROCESAMIENTO (BULLY)
+
+  procesadora1:
+    build: 
+      context: .
+      dockerfile: procesadores/Dockerfile
+    container_name: local_procesadora1
+    environment:
+      - PROCESADORA_ID=1
+      - PROCESADORA_PORT=50061
+      - PROCESADORA_HOST=procesadora1
+      - NAMESERVER_ADDR=nameserver:50050
+    depends_on:
+      - nameserver
+    restart: unless-stopped
+
+  procesadora2:
+    build: 
+      context: .
+      dockerfile: procesadores/Dockerfile
+    container_name: local_procesadora2
+    environment:
+      - PROCESADORA_ID=2
+      - PROCESADORA_PORT=50062
+      - PROCESADORA_HOST=procesadora2
+      - NAMESERVER_ADDR=nameserver:50050
+    depends_on:
+      - nameserver
+    restart: unless-stopped
+
+  procesadora3:
+    build: 
+      context: .
+      dockerfile: procesadores/Dockerfile
+    container_name: local_procesadora3
+    environment:
+      - PROCESADORA_ID=3
+      - PROCESADORA_PORT=50063
+      - PROCESADORA_HOST=procesadora3
+      - NAMESERVER_ADDR=nameserver:50050
+    depends_on:
+      - nameserver
+    restart: unless-stopped
+
+  #CAPA DE INTERMEDIACIÓN (BROKER)
+  broker:
+    build: 
+      context: .
+      dockerfile: broker/Dockerfile
+    container_name: local_broker
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - NAMESERVER_ADDR=nameserver:50050
+    depends_on:
+      - rabbitmq
+      - nameserver
+    restart: unless-stopped
+
+  #EXTRACCIÓN (CLIENTES)
+
+  cliente:
+    build: 
+      context: .
+      dockerfile: cliente/Dockerfile
+    container_name: local_cliente
+    environment:
+      - DB_HOST=bd-legada
+      - DB_USER=distrieats_lector
+      - DB_PASS=lector_lab3_2026
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+    depends_on:
+      - bd-legada
+      - rabbitmq
+    restart: unless-stopped
+
+  extractor:
+    build: 
+      context: .
+      dockerfile: extractor/Dockerfile
+    container_name: local_extractor
+    environment:
+      - DB_HOST=bd-legada
+      - DB_USER=distrieats_lector
+      - DB_PASS=lector_lab3_2026
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+    depends_on:
+      - bd-legada
+      - rabbitmq
+    restart: unless-stopped

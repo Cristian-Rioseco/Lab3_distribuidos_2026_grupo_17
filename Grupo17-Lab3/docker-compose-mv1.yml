@@ -1,0 +1,43 @@
+version: '3.8'
+services:
+  bd-legada:
+    image: ghcr.io/felipemarchantvargas/distrieats-bd:1.0
+    container_name: bd-legada
+    ports:
+      - "5432:5432"
+    volumes:
+      - bd-legada-datos:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  cliente:
+    build: 
+      context: .
+      dockerfile: cliente/Dockerfile
+    container_name: cliente_emisor
+    environment:
+      - DB_HOST=bd-legada
+      - DB_USER=distrieats_lector
+      - DB_PASS=lector_lab3_2026
+      # Conexión hacia RabbitMQ en la VM2
+      - RABBITMQ_URL=amqp://guest:guest@10.35.168.76:5672/ 
+    depends_on:
+      - bd-legada
+    restart: on-failure
+
+  extractor:
+    build: 
+      context: .
+      dockerfile: extractor/Dockerfile
+    container_name: extractor_historico
+    environment:
+      - DB_HOST=bd-legada
+      - DB_USER=distrieats_lector
+      - DB_PASS=lector_lab3_2026
+      # Conexión hacia RabbitMQ en la VM2
+      - RABBITMQ_URL=amqp://guest:guest@10.35.168.76:5672/ 
+    depends_on:
+      - bd-legada
+    restart: on-failure
+
+volumes:
+  bd-legada-datos:
